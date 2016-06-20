@@ -42,6 +42,8 @@ can be done separately to see what needs to be changed before execution.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		params := getParams(cmd)
 
+		verifyModuleSignature(args[0])
+
 		// set up execution context
 		ctx, cancel := context.WithCancel(context.Background())
 		GracefulExit(cancel)
@@ -93,5 +95,6 @@ can be done separately to see what needs to be changed before execution.`,
 
 func init() {
 	addParamsArguments(planCmd.PersistentFlags())
+	addPGPArguments(planCmd.PersistentFlags())
 	RootCmd.AddCommand(planCmd)
 }

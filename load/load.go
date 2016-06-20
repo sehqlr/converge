@@ -15,14 +15,12 @@
 package load
 
 import (
-	"fmt"
 	"io/ioutil"
-	"net/http"
 	"net/url"
-	"os"
 	"path"
 
 	"github.com/asteris-llc/converge/resource"
+	"github.com/asteris-llc/converge/util"
 )
 
 // Load a module from a resource. This uses the protocol in the path (or file://
@@ -107,15 +105,14 @@ func loadAny(root *url.URL, source string) (*resource.Module, error) {
 		url.Path = path.Join(path.Dir(root.Path), url.Path)
 	}
 
-	var content []byte
-	switch url.Scheme {
-	case "file":
-		content, err = FromFile(url.Path)
-	case "http", "https":
-		content, err = FromHTTP(url.String())
-	default:
-		return nil, fmt.Errorf("protocol %q is not implemented", url.Scheme)
+	rdr, err := util.Retrieve(url)
+	if err != nil {
+		return nil, err
+	} else {
+		defer rdr.Close()
 	}
+
+	content, err := ioutil.ReadAll(rdr)
 	if err != nil {
 		return nil, err
 	}
@@ -125,32 +122,4 @@ func loadAny(root *url.URL, source string) (*resource.Module, error) {
 		mod.ModuleName = path.Base(url.String())
 	}
 	return mod, err
-}
-
-// FromFile loads a module from a file
-func FromFile(filename string) ([]byte, error) {
-	content, err := ioutil.ReadFile(filename)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, &NotFoundError{"file", filename}
-		}
-		return nil, err
-	}
-
-	return content, err
-}
-
-// FromHTTP fetches a module from an HTTP server, and then loads it
-func FromHTTP(url string) ([]byte, error) {
-	response, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-
-	content, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return content, err
 }
