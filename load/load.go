@@ -59,7 +59,10 @@ func Load(source string, args resource.Values) (*Graph, error) {
 				newModule.Args = mt.Args
 				newModule.Source = mt.Source
 				newModule.ModuleName = mt.ModuleName
-				newModule.Dependencies = append(newModule.Dependencies, mt.Dependencies...)
+				newModule.SetDepends(append(
+					newModule.Depends(),
+					mt.Depends()...,
+				))
 
 				module.Resources[i] = newModule
 				modules = append(modules, newModule)
@@ -102,7 +105,9 @@ func loadAny(root *url.URL, source string) (*resource.Module, error) {
 	}
 
 	if root != nil && !path.IsAbs(url.Path) {
-		url.Path = path.Join(path.Dir(root.Path), url.Path)
+		path := path.Join(path.Dir(root.Path), url.Path)
+		*url = *root // shallow copy of root to url
+		url.Path = path
 	}
 
 	rdr, err := util.Retrieve(url)
