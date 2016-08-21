@@ -24,6 +24,7 @@ import (
 	"github.com/asteris-llc/converge/resource"
 	"github.com/asteris-llc/converge/resource/file/content"
 	"github.com/asteris-llc/converge/resource/module"
+	"github.com/asteris-llc/converge/resource/context"
 	"github.com/asteris-llc/converge/resource/param"
 	"github.com/asteris-llc/converge/resource/shell"
 	"github.com/hashicorp/hcl"
@@ -50,6 +51,9 @@ func SetResources(ctx context.Context, g *graph.Graph) (*graph.Graph, error) {
 
 		case "module":
 			dest = new(module.Preparer)
+
+		case "context":
+			dest = new(context.Preparer)
 
 		case "task":
 			dest = new(shell.Preparer)

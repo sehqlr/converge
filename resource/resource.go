@@ -14,6 +14,8 @@
 
 package resource
 
+import "github.com/asteris-llc/converge/resource/context"
+
 // Task does checking as Monitor does, but it can also make changes to make the
 // checks pass.
 type Task interface {
@@ -24,6 +26,7 @@ type Task interface {
 // Resource adds metadata about the executed tasks
 type Resource interface {
 	Prepare(Renderer) (Task, error)
+	Context() context.Context
 }
 
 // Renderer is passed to resources
