@@ -1,9 +1,11 @@
-param "image-name" {
-  default = "centos"
-}
+param "image-name" {}
 
 param "image-tag" {
   default = "latest"
+}
+
+param "local-samples-directory" {
+  default = "{{ env `PWD`}}/samples"
 }
 
 param "local-converge-directory" {
@@ -26,11 +28,14 @@ docker.container "integration-test" {
   ]
   publish_all_ports = "false"
   ports = [
-    "26930:2693",
-    "29640:2694",
+    "2693:2693",
+    "2694:2694",
   ]
 
-  volumes     = ["{{param `local-converge-directory`}}:/converge"]
+  volumes     = [
+    "{{param `local-converge-directory`}}:/converge",
+    "{{param `local-samples-directory`}}:/samples",
+  ]
   working_dir = "/converge"
 
   command = ["./converge", "server", "--no-token"]
@@ -38,12 +43,16 @@ docker.container "integration-test" {
   depends = ["docker.image.integration-test"]
 }
 
+task.query "sleep" {
+  query = "sleep 10"
+}
+
 task "basic converge on container" {
   interpreter = "/bin/bash"
   check_flags = ["-n"]
 
-  check = "./converge plan --rpc-addr :26930 samples/basic.hcl"
-  apply = "./converge apply --rpc-addr :26930 samples/basic.hcl"
+  check = "./converge plan --rpc-addr=localhost:2693 /samples/basic.hcl"
+  apply = "./converge apply --rpc-addr=localhost:2693 /samples/basic.hcl"
 
-  depends = ["docker.container.integration-test"]
+  depends = ["task.query.sleep", "docker.container.integration-test"]
 }
