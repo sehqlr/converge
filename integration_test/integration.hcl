@@ -2,41 +2,38 @@ param "image-name" {
   default = "centos"
 }
 
-param "converge-directory" {
-  default = "{{ env `PWD`}}"
+param "image-tag" {
+  default = "latest"
 }
 
-param "converge-bin" {
-  default = "{{ param `converge-directory` }}/build/converge_0.1.1_linux_amd64"
+param "local-converge-directory" {
+  default = "{{ env `PWD`}}/build/converge_0.1.1_linux_amd64"
 }
 
 docker.image "integration-test" {
   name    = "{{ param `image-name` }}"
-  tag     = "latest"
+  tag     = "{{ param `image-tag` }}"
   timeout = "60s"
 }
 
 docker.container "integration-test" {
   name  = "integration-test-{{ param `image-name` }}"
-  image = "{{param `image-name`}}:latest"
+  image = "{{param `image-name`}}:{{param `image-tag`}}"
 
   expose = [
-    "2693", 
+    "2693",
     "2694"
   ]
   publish_all_ports = "false"
   ports = [
-    "2693:26930",
-    "2964:26940",
+    "26930:2693",
+    "29640:2694",
   ]
 
-  volumes     = ["{{param `converge-directory`}}:/converge"]
+  volumes     = ["{{param `local-converge-directory`}}:/converge"]
   working_dir = "/converge"
 
-  command = [
-    "cp {{param `converge-bin`}} converge-{{ param `image-name` }}",
-    "./converge-{{param `image-name`}} server -no-token",
-  ]
+  command = ["./converge", "server", "--no-token"]
 
   depends = ["docker.image.integration-test"]
 }
@@ -45,9 +42,8 @@ task "basic converge on container" {
   interpreter = "/bin/bash"
   check_flags = ["-n"]
 
-  check = <<END
-./converge --rpc-addr :26930 plan samples/basic.hcl
-END
+  check = "./converge plan --rpc-addr :26930 samples/basic.hcl"
+  apply = "./converge apply --rpc-addr :26930 samples/basic.hcl"
 
   depends = ["docker.container.integration-test"]
 }
