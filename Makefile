@@ -129,4 +129,9 @@ docs: docs_source/**/*
 	$(MAKE) -C docs_source
 	mv docs_source/public docs
 
-.PHONY: test gotest vendor-update vendor-clean xcompile package samples/errors/*.hcl blackbox/*.sh lint bench license-check
+integration: xcompile integration_test/test-*.hcl
+	@echo
+	@echo === integration test for $@ ===
+	./converge apply --local --no-token --rpc-addr :2693 integration_test/$@
+
+.PHONY: test gotest vendor-update vendor-clean xcompile package samples/errors/*.hcl blackbox/*.sh lint bench license-check integration
