@@ -129,9 +129,10 @@ docs: docs_source/**/*
 	$(MAKE) -C docs_source
 	mv docs_source/public docs
 
-integration: xcompile integration_test/test-*.hcl
+integration: integration_test/integration.hcl build/$(NAME)_$(VERSION)_linux_amd64/$(NAME)
 	@echo
-	@echo === integration test for $@ ===
-	./converge apply --local --no-token --rpc-addr :2693 integration_test/$@
+	@echo === integration test ===
+	./converge plan --local --no-token -p image-name=centos $<
+	./converge apply --local --no-token -p image-name=centos $<
 
 .PHONY: test gotest vendor-update vendor-clean xcompile package samples/errors/*.hcl blackbox/*.sh lint bench license-check integration

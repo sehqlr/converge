@@ -28,8 +28,7 @@ docker.container "integration-test" {
   ]
   publish_all_ports = "false"
   ports = [
-    "2693:2693",
-    "2694:2694",
+    "4774:2693",
   ]
 
   volumes     = [
@@ -51,8 +50,8 @@ task "basic converge on container" {
   interpreter = "/bin/bash"
   check_flags = ["-n"]
 
-  check = "./converge plan --rpc-addr=localhost:2693 /samples/basic.hcl"
-  apply = "./converge apply --rpc-addr=localhost:2693 /samples/basic.hcl"
+  check = "./converge plan --rpc-addr :4774 /samples/basic.hcl"
+  apply = "./converge apply --rpc-addr :4774 /samples/basic.hcl"
 
   depends = ["task.query.sleep", "docker.container.integration-test"]
 }
